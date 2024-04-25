@@ -9,3 +9,5 @@ zero_angles = [0, 0, 0, 0, 0, 0]
 
 # Send the robot to the zero configuration
 mc.send_angles(zero_angles, 50)  # 50 is the speed
+
+mc.close()
