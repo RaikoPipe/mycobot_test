@@ -137,8 +137,8 @@ class MyCobotApp(QMainWindow):
 
     def connect_robot(self):
         # Connect to the MyCobot
-        self.mc = MyCobotSocket('141.44.152.231', 9000)
-        #self.mc = MyCobot('/dev/ttyTHS1', 1000000)
+        #self.mc = MyCobotSocket('141.44.152.231', 9000)
+        self.mc = MyCobot('/dev/ttyTHS1', 1000000)
         print('Connected to robot.')
         self.timer.start()  # Start the timer
 
