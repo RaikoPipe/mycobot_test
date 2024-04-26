@@ -191,11 +191,15 @@ class MyCobotApp(QMainWindow):
             Returns: (bool) True if the robot reached the pose, False otherwise.
                 """
         print('Moving to:', pose)
+        arrived = False
         if coords:
-            self.mc.sync_send_coords(pose, speed, 0)
+            arrived = self.mc.sync_send_coords(pose, speed, 0)
         else:
-            self.mc.sync_send_angles(pose, speed)
-
+            arrived = self.mc.sync_send_angles(pose, speed)
+        if arrived:
+            return True
+        else:
+            return False
         start = time.time()
         self.mc.set_color(255, 255, 0)
         while True:
@@ -262,32 +266,32 @@ class MyCobotApp(QMainWindow):
                 coords[1] = self.home_coords[1] + y + y_offset
 
                 arrived = self.move_cobot_to(coords, speed, True)
-                self.stop_wait(3)
+                #self.stop_wait(3)
                 if arrived:
                     coords[2] = 120
                     arrived = self.move_cobot_to(coords, speed, True)
                     self.stop_wait(1)
                     self.mc.send_coord(6, rot, 50)
-                    self.stop_wait(3)
+                    self.stop_wait(2)
                     if arrived:
                         coords[2] = 80
                         coords[5] = rot
                         arrived = self.move_cobot_to(coords, 20, True)
-                        self.stop_wait(1)
+                        #self.stop_wait(2)
                         if arrived:
                             self.mc.set_gripper_state(1, 50)
                             self.stop_wait(2)
                             arrived = self.move_cobot_to(self.pick_up_angles, speed, False)
-                            self.stop_wait(1)
+                            #self.stop_wait(2)
                             if arrived:
                                 bin_angles = self.id_to_angles[bin_id]
                                 arrived = self.move_cobot_to(bin_angles, speed, False)
-                                self.stop_wait(3)
+                                #self.stop_wait(3)
                             if arrived:
                                 self.mc.set_gripper_state(0, 50)
                                 self.stop_wait(2)
                                 arrived = self.move_cobot_to(self.home_angles, speed, False)
-                                self.stop_wait(3)
+                                #self.stop_wait(3)
                     # if arrived:
                     #     self.mc.send_coord(6, rot, 50)
                     #     time.sleep(2)
