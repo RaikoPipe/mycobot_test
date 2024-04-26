@@ -241,14 +241,17 @@ class MyCobotApp(QMainWindow):
                         coords[2] = 80
                         coords[5] = rot
                         arrived = self.move_cobot_to(coords, 20, True)
+                        self.stop_wait(1)
                         if arrived:
                             self.mc.set_gripper_state(1, 50)
                             self.stop_wait(2)
-                            coords[2] = 100
-                            arrived = self.move_cobot_to(coords, 50, True)
+                            coords[2] = 150
+                            arrived = self.move_cobot_to(coords, speed, True)
                             self.stop_wait(1)
                             if arrived:
-                                arrived = self.move_cobot_to(self.id_to_coords[bin_id], speed, True)
+                                bin_coords = self.id_to_coords[bin_id]
+                                bin_coords[3:5] = coords[3:5]
+                                arrived = self.move_cobot_to(bin_coords, speed, True)
                                 self.stop_wait(1)
                                 if arrived:
                                     self.mc.set_gripper_state(0, 50)
