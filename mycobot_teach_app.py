@@ -209,15 +209,15 @@ class MyCobotApp(QMainWindow):
                 self.move_home()
                 return False
 
-            elif self.mc.is_in_position(pose, int(coords)) == 0:
-                print('Cobot has stopped moving. Resending command.')
-                self.mc.set_color(0, 255, 0)
-                if coords:
-                    self.mc.send_coords(pose, speed, 0)
-                else:
-                    self.mc.send_angles(pose, speed)
-                time.sleep(2)
-                continue
+            # elif self.mc.is_in_position(pose, int(coords)) == 0:
+            #     print('Cobot has stopped moving. Resending command.')
+            #     self.mc.set_color(0, 255, 0)
+            #     if coords:
+            #         self.mc.send_coords(pose, speed, 0)
+            #     else:
+            #         self.mc.send_angles(pose, speed)
+            #     time.sleep(2)
+            #     continue
 
             if self.mc.is_in_position(pose, int(coords)) == -1:
                 print('Cobot has had an error.')
