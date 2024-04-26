@@ -256,7 +256,7 @@ class MyCobotApp(QMainWindow):
                                 if arrived:
                                     self.mc.set_gripper_state(0, 50)
                                     self.stop_wait(2)
-                                    arrived = self.move_cobot_to(self.home_coords, speed, False)
+                                    arrived = self.move_cobot_to(self.home_angles, speed, False)
                                     self.stop_wait(1)
                     # if arrived:
                     #     self.mc.send_coord(6, rot, 50)
