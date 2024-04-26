@@ -258,7 +258,7 @@ class MyCobotApp(QMainWindow):
             # normalize angle
             rot = (rot + 180) % 360 - 180  # this step should not be necessary
             # move to the cube
-            rot = self.home_coords[5] + ((self.home_coords[5] - abs(rot)) % 90)
+            rot = self.home_coords[5] + (self.home_coords[5] - abs(rot))
             print(f'Rotating from {self.home_coords[5]} to {rot}')
             if self.mc:
                 coords = self.home_coords.copy()
