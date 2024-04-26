@@ -115,7 +115,7 @@ class MyCobotApp(QMainWindow):
         self.y_offset_spin_box = QSpinBox()
         self.y_offset_spin_box.setMinimum(-300)
         self.y_offset_spin_box.setMaximum(300)
-        self.y_offset_spin_box.setValue(-12)
+        self.y_offset_spin_box.setValue(-10)
         layout.addWidget(self.y_offset_spin_box)
 
         # Create a QLabel for the QSpinBox
@@ -208,8 +208,8 @@ class MyCobotApp(QMainWindow):
             # normalize angle
             rot = (rot + 180) % 360 - 180  # this step should not be necessary
             # move to the cube
-            rot = self.home_coords[5] + (self.home_coords[5] - abs(rot))
-            print()
+            rot = self.home_coords[5] + ((self.home_coords[5] - abs(rot)) % 90)
+            print(f'Rotating from {self.home_coords[5]} to {rot}')
             if self.mc:
                 coords = self.home_coords.copy()
                 coords[0] = self.home_coords[0] + x + x_offset
