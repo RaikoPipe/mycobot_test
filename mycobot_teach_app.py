@@ -252,22 +252,22 @@ class MyCobotApp(QMainWindow):
                 # set atom to red color
                 self.mc.set_color(255, 165, 0)
                 for command in self.commands:
-                    match command[0]:
-                        case 'angle':
-                            print(f'Going to position: {command[1]}')
-                            self.move_cobot_to(command[1], speed, False)
-                        case 'gripper':
-                            if command[1] == 'close':
-                                print('Closing gripper')
-                                self.mc.set_gripper_state(1, speed)
+                    if command[0] == 'angle':
 
-                            elif command[1] == 'open':
-                                print('Opening gripper')
-                                self.mc.set_gripper_state(0, speed)
+                        print(f'Going to position: {command[1]}')
+                        self.move_cobot_to(command[1], speed, False)
+                    elif command[0] == 'gripper':
+                        if command[1] == 'close':
+                            print('Closing gripper')
+                            self.mc.set_gripper_state(1, speed)
 
-                            self.stop_wait(2)
-                        case _:
-                            print('Unknown command')
+                        elif command[1] == 'open':
+                            print('Opening gripper')
+                            self.mc.set_gripper_state(0, speed)
+
+                        self.stop_wait(2)
+                    else:
+                        print('Unknown command')
             print('Commands played.')
             # set atom to green color
             self.mc.set_color(0, 255, 0)
