@@ -225,6 +225,7 @@ class MyCobotApp(QMainWindow):
                     self.stop_wait(2)
                     if arrived:
                         coords[2] = 80
+                        coords[5] = rot
                         arrived = self.move_cobot_to(coords, 20, True)
                     # if arrived:
                     #     self.mc.send_coord(6, rot, 50)
