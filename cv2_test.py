@@ -14,7 +14,7 @@ start_y = 90  # example value
 crop_size = 312
 
 # capture the frame
-cap = cv2.VideoCapture(1)
+cap = cv2.VideoCapture(0)
 if not cap.isOpened():
     print("Cannot open camera")
     exit()
