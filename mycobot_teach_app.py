@@ -276,7 +276,7 @@ class MyCobotApp(QMainWindow):
                     coords[2] = 120
                     arrived = self.move_cobot_to(coords, speed, True)
                     self.stop_wait(1)
-                    self.mc.send_coord(6, rot, 50)
+                    self.mc.send_coord(6, rot, speed)
                     self.stop_wait(2)
                     if arrived:
                         coords[2] = 80
@@ -284,7 +284,7 @@ class MyCobotApp(QMainWindow):
                         arrived = self.move_cobot_to(coords, 20, True)
                         #self.stop_wait(2)
                         if arrived:
-                            self.mc.set_gripper_state(1, 50)
+                            self.mc.set_gripper_state(1, speed)
                             self.stop_wait(2)
                             arrived = self.move_cobot_to(self.pick_up_angles, speed, False)
                             #self.stop_wait(2)
@@ -293,7 +293,7 @@ class MyCobotApp(QMainWindow):
                                 arrived = self.move_cobot_to(bin_angles, speed, False)
                                 #self.stop_wait(3)
                             if arrived:
-                                self.mc.set_gripper_state(0, 50)
+                                self.mc.set_gripper_state(0, speed)
                                 self.stop_wait(2)
                                 arrived = self.move_cobot_to(self.home_angles, speed, False)
                                 #self.stop_wait(3)
