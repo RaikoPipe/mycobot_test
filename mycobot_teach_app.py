@@ -446,8 +446,10 @@ class MyCobotApp(QMainWindow):
 
     def emergency_stop(self):
         if self.mc:
-            self.mc.stop()
+            self.current_thread.join()
             self.mc.set_color(255, 0, 0)
+            self.mc.stop()
+
 
     def close_app(self):
         # Close the application
