@@ -203,6 +203,7 @@ class MyCobotApp(QMainWindow):
         else:
             arrived = self.mc.sync_send_angles(pose, speed)
         if arrived:
+            self.mc.set_color(0, 255, 0)
             return True
         else:
             return False
