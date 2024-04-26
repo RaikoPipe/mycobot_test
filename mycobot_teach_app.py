@@ -105,7 +105,7 @@ class MyCobotApp(QMainWindow):
         self.x_offset_spin_box = QSpinBox()
         self.x_offset_spin_box.setMinimum(-300)
         self.x_offset_spin_box.setMaximum(300)
-        self.x_offset_spin_box.setValue(44)
+        self.x_offset_spin_box.setValue(46)
         layout.addWidget(self.x_offset_spin_box)
 
         # Create a QLabel for the QSpinBox
@@ -125,7 +125,7 @@ class MyCobotApp(QMainWindow):
         self.rot_offset_spin_box = QSpinBox()
         self.rot_offset_spin_box.setMinimum(-45)
         self.rot_offset_spin_box.setMaximum(45)
-        self.rot_offset_spin_box.setValue(0)
+        self.rot_offset_spin_box.setValue(-45)
         layout.addWidget(self.rot_offset_spin_box)
 
         # Exit button
@@ -199,26 +199,26 @@ class MyCobotApp(QMainWindow):
             print('Cube detected at:', x, y, rot)
             x /= 2.461  # ratio offset
             y /= 2.355  # ratio offset
-            rot = rot % 90  # limit rotation to 90 degrees
 
             speed = self.speed_spin_box.value()
             x_offset = self.x_offset_spin_box.value()
             y_offset = self.y_offset_spin_box.value()
             rot_offset = self.rot_offset_spin_box.value()
+            rot = rot + rot_offset
+            # normalize angle
+            rot = (rot + 180) % 360 - 180  # this step should not be necessary
             # move to the cube
+            rot = self.home_coords[5] + (self.home_coords[5] - abs(rot))
             if self.mc:
                 coords = self.home_coords.copy()
                 coords[0] = self.home_coords[0] + x + x_offset
                 coords[1] = self.home_coords[1] + y + y_offset
-                rot = rot + rot_offset
-                #normalize angle
-                rot = (rot + 180) % 360 - 180 # this step should not be necessary
 
                 arrived = self.move_cobot_to(coords, speed, True)
                 self.stop_wait(1)
                 if arrived:
                     coords[2] = 100
-                    coords[5] = self.home_coords[5] + rot
+                    coords[5] = rot
                     arrived = self.move_cobot_to(coords, speed, True)
                     self.stop_wait(1)
                     if arrived:
