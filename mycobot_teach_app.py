@@ -209,6 +209,7 @@ class MyCobotApp(QMainWindow):
             rot = (rot + 180) % 360 - 180  # this step should not be necessary
             # move to the cube
             rot = self.home_coords[5] + (self.home_coords[5] - abs(rot))
+            print()
             if self.mc:
                 coords = self.home_coords.copy()
                 coords[0] = self.home_coords[0] + x + x_offset
@@ -218,9 +219,11 @@ class MyCobotApp(QMainWindow):
                 self.stop_wait(1)
                 if arrived:
                     coords[2] = 100
-                    coords[5] = rot
                     arrived = self.move_cobot_to(coords, speed, True)
                     self.stop_wait(1)
+                    direction = 2 if self.home_coords[5] < abs(rot) else 1
+                    self.mc.send_coord(direction, 6, rot, 50)
+                    self.stop_wait(2)
                     if arrived:
                         coords[2] = 80
                         arrived = self.move_cobot_to(coords, 20, True)
