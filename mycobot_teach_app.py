@@ -125,7 +125,7 @@ class MyCobotApp(QMainWindow):
         self.rot_offset_spin_box = QSpinBox()
         self.rot_offset_spin_box.setMinimum(-45)
         self.rot_offset_spin_box.setMaximum(45)
-        self.rot_offset_spin_box.setValue(-45)
+        self.rot_offset_spin_box.setValue(0)
         layout.addWidget(self.rot_offset_spin_box)
 
         # Exit button
