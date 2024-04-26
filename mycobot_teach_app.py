@@ -211,7 +211,7 @@ class MyCobotApp(QMainWindow):
 
             elif time.time() - start > 10:
                 print('Cobot has stopped moving. Resending command.')
-                self.mc.set_color(0, 255, 0)
+                #self.mc.set_color(0, 255, 0)
                 if coords:
                     self.mc.send_coords(pose, speed, 0)
                 else:
@@ -262,13 +262,13 @@ class MyCobotApp(QMainWindow):
                 coords[1] = self.home_coords[1] + y + y_offset
 
                 arrived = self.move_cobot_to(coords, speed, True)
-                self.stop_wait(1)
+                self.stop_wait(3)
                 if arrived:
                     coords[2] = 120
                     arrived = self.move_cobot_to(coords, speed, True)
                     self.stop_wait(1)
                     self.mc.send_coord(6, rot, 50)
-                    self.stop_wait(2)
+                    self.stop_wait(3)
                     if arrived:
                         coords[2] = 80
                         coords[5] = rot
@@ -282,12 +282,12 @@ class MyCobotApp(QMainWindow):
                             if arrived:
                                 bin_angles = self.id_to_angles[bin_id]
                                 arrived = self.move_cobot_to(bin_angles, speed, False)
-                                self.stop_wait(1)
+                                self.stop_wait(3)
                             if arrived:
                                 self.mc.set_gripper_state(0, 50)
                                 self.stop_wait(2)
                                 arrived = self.move_cobot_to(self.home_angles, speed, False)
-                                self.stop_wait(1)
+                                self.stop_wait(3)
                     # if arrived:
                     #     self.mc.send_coord(6, rot, 50)
                     #     time.sleep(2)
