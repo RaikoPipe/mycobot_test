@@ -108,7 +108,7 @@ class MyCobotApp(QMainWindow):
         self.speed_spin_box = QSpinBox()
         self.speed_spin_box.setMinimum(0)
         self.speed_spin_box.setMaximum(100)
-        self.speed_spin_box.setValue(25)  # Default value
+        self.speed_spin_box.setValue(75)  # Default value
         layout.addWidget(self.speed_spin_box)
 
         # Create a QLabel for the QSpinBox
@@ -141,10 +141,10 @@ class MyCobotApp(QMainWindow):
         self.rot_offset_spin_box.setValue(0)
         layout.addWidget(self.rot_offset_spin_box)
 
-        # add red stop button
+        # add red stop button todo: implement
         self.stop_button = QPushButton('STOP')
         self.stop_button.clicked.connect(self.emergency_stop)
-        layout.addWidget(self.stop_button)
+        # layout.addWidget(self.stop_button)
 
         # Exit button
         self.exit_button = QPushButton('Exit')
@@ -449,7 +449,6 @@ class MyCobotApp(QMainWindow):
             self.current_thread.join()
             self.mc.set_color(255, 0, 0)
             self.mc.stop()
-
 
     def close_app(self):
         # Close the application
