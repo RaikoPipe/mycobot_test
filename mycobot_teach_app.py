@@ -141,6 +141,11 @@ class MyCobotApp(QMainWindow):
         self.rot_offset_spin_box.setValue(0)
         layout.addWidget(self.rot_offset_spin_box)
 
+        # add red stop button
+        self.stop_button = QPushButton('STOP')
+        self.stop_button.clicked.connect(self.emergency_stop)
+        layout.addWidget(self.stop_button)
+
         # Exit button
         self.exit_button = QPushButton('Exit')
         self.exit_button.clicked.connect(self.close_app)  # Connect the button to close_app method
@@ -192,6 +197,7 @@ class MyCobotApp(QMainWindow):
                 """
         print('Moving to:', pose)
         arrived = False
+        self.mc.set_color(255, 255, 0)
         if coords:
             arrived = self.mc.sync_send_coords(pose, speed, 0)
         else:
@@ -201,7 +207,6 @@ class MyCobotApp(QMainWindow):
         else:
             return False
         start = time.time()
-        self.mc.set_color(255, 255, 0)
         while True:
             if self.mc.is_in_position(pose, int(coords)):
                 self.mc.set_color(0, 255, 0)
@@ -438,6 +443,11 @@ class MyCobotApp(QMainWindow):
         for i in range(1, t + 1):
             QApplication.processEvents()
             time.sleep(0.1)
+
+    def emergency_stop(self):
+        if self.mc:
+            self.mc.stop(0)
+            self.mc.set_color(255, 0, 0)
 
     def close_app(self):
         # Close the application
