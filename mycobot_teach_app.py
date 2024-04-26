@@ -2,7 +2,7 @@ import sys
 from PyQt5.QtWidgets import QApplication, QMainWindow, QPushButton, QVBoxLayout, QWidget, QLabel, QListWidget, \
     QMessageBox, QSpinBox
 from PyQt5 import QtCore
-from pymycobot import MyCobotSocket
+from pymycobot import MyCobotSocket, MyCobot
 import time
 import threading
 import cv2_rec
@@ -138,6 +138,7 @@ class MyCobotApp(QMainWindow):
     def connect_robot(self):
         # Connect to the MyCobot
         self.mc = MyCobotSocket('141.44.152.231', 9000)
+        #self.mc = MyCobot('/dev/ttyTHS1', 1000000)
         print('Connected to robot.')
         self.timer.start()  # Start the timer
 
@@ -209,14 +210,15 @@ class MyCobotApp(QMainWindow):
                 coords = self.home_coords.copy()
                 coords[0] = self.home_coords[0] + x + x_offset
                 coords[1] = self.home_coords[1] + y + y_offset
+                rot = rot + rot_offset
+                #normalize angle
+                rot = (rot + 180) % 360 - 180 # this step should not be necessary
 
-                rot += (self.home_coords[5] + rot_offset)
-                rot -= 67.5
                 arrived = self.move_cobot_to(coords, speed, True)
                 self.stop_wait(1)
                 if arrived:
                     coords[2] = 100
-                    coords[5] = self.home_coords[5] + rot + rot_offset
+                    coords[5] = self.home_coords[5] + rot
                     arrived = self.move_cobot_to(coords, speed, True)
                     self.stop_wait(1)
                     if arrived:
