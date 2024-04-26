@@ -25,7 +25,7 @@ class MyCobotApp(QMainWindow):
         self.bin_c_angles = [-17,-57,-36,17,-6,163]
         self.bin_d_angles = [-31,-20,-94,32,1,142]
         self.loading_area_angles = [49, -73, -1, -2, -2, -116]
-        self.id_to_coords = {
+        self.id_to_angles = {
             0: self.bin_a_angles,
             1: self.bin_b_angles,
             2: self.bin_c_angles,
@@ -249,9 +249,8 @@ class MyCobotApp(QMainWindow):
                             arrived = self.move_cobot_to(coords, speed, True)
                             self.stop_wait(1)
                             if arrived:
-                                bin_coords = self.id_to_coords[bin_id]
-                                bin_coords[3:5] = coords[3:5]
-                                arrived = self.move_cobot_to(bin_coords, speed, False)
+                                bin_angles = self.id_to_angles[bin_id]
+                                arrived = self.move_cobot_to(bin_angles, speed, False)
                                 self.stop_wait(1)
                                 if arrived:
                                     self.mc.set_gripper_state(0, 50)
