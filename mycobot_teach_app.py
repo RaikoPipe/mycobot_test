@@ -277,8 +277,10 @@ class MyCobotApp(QMainWindow):
                     coords[2] = 120
                     arrived = self.move_cobot_to(coords, speed, True)
                     self.stop_wait(1)
-                    self.mc.send_coord(6, rot, speed)
-                    self.stop_wait(2)
+                    grasp_pose = coords.copy()
+                    grasp_pose[5] = rot
+                    self.mc.sync_send_coord(grasp_pose, speed)
+                    #self.stop_wait(2)
                     if arrived:
                         coords[2] = 80
                         coords[5] = rot
