@@ -21,7 +21,7 @@ class MyCobotApp(QMainWindow):
         self.home_angles = [2.54, 55.72, -97.73, -44.03, -1.66, 140.0]
         self.home_coords = [52.9, -62.6, 217.8, 178.98, 1.95, 132.06]
         self.bin_a_angles = [68.37, -21.53, -78.75, 11.07, -0.35, -128]
-        self.bin_b_angles = [108,4,-117,28,-1,-102]
+        self.bin_b_angles = [103.27,-5.71,-98.78,19.24,1.49,150.38]
         self.bin_c_angles = [-17,-57,-36,17,-6,163]
         self.bin_d_angles = [-31,-20,-94,32,1,142]
         self.loading_area_angles = [49, -73, -1, -2, -2, -116]
@@ -32,6 +32,7 @@ class MyCobotApp(QMainWindow):
             3: self.bin_d_angles,
             4: self.loading_area_angles
         }
+        self.pick_up_angles = [20.21, 13.71, -102.04, 2.19, -0.26, 159.16]
         self.stop_record_flag = False
         self.commands = []  # This list will hold the saved commands
         self.init_ui()
@@ -149,7 +150,7 @@ class MyCobotApp(QMainWindow):
 
     def connect_robot(self):
         # Connect to the MyCobot
-        #self.mc = MyCobotSocket('141.44.152.231', 9000)
+        # self.mc = MyCobotSocket('141.44.152.231', 9000)
         self.mc = MyCobot('/dev/ttyTHS1', 1000000)
         print('Connected to robot.')
         self.timer.start()  # Start the timer
@@ -160,23 +161,25 @@ class MyCobotApp(QMainWindow):
             self.mc = None
             print('Disconnected from robot.')
 
+    def move_home(self):
+        if self.mc:
+            arrived = self.move_cobot_to(self.home_angles, 50, False)
+            if arrived:
+                # open gripper
+                self.mc.set_gripper_state(0, 50)
+                self.stop_wait(2)
+                self.mc.set_color(0, 255, 0)
+                print('Moved to home position.')
+
     def go_home(self):
-        def move_home():
-            if self.mc:
-                arrived = self.move_cobot_to(self.home_angles, 50, False)
-                if arrived:
-                    # open gripper
-                    self.mc.set_gripper_state(0, 50)
-                    self.stop_wait(2)
-                    self.mc.set_color(0, 255, 0)
-                    print('Moved to home position.')
+
 
         # start thread
         # end current thread
         if self.current_thread:
             self.current_thread.join()
         # start thread
-        self.current_thread = threading.Thread(target=move_home)
+        self.current_thread = threading.Thread(target=self.move_home)
         self.current_thread.start()
 
     def move_cobot_to(self, pose, speed=50, coords=True):
@@ -189,9 +192,9 @@ class MyCobotApp(QMainWindow):
                 """
         print('Moving to:', pose)
         if coords:
-            self.mc.send_coords(pose, speed, 0)
+            self.mc.sync_send_coords(pose, speed, 0)
         else:
-            self.mc.send_angles(pose, speed)
+            self.mc.sync_send_angles(pose, speed)
 
         start = time.time()
         self.mc.set_color(255, 255, 0)
@@ -199,10 +202,39 @@ class MyCobotApp(QMainWindow):
             if self.mc.is_in_position(pose, int(coords)):
                 self.mc.set_color(0, 255, 0)
                 return True
-            if time.time() - start > 15:
-                print('Timeout')
+
+            elif time.time() - start > 10:
+                print('Timeout. Aborting.')
                 self.mc.set_color(255, 0, 0)
+                self.move_home()
                 return False
+
+            elif self.mc.is_in_position(pose, int(coords)) == 0:
+                print('Cobot has stopped moving. Resending command.')
+                self.mc.set_color(0, 255, 0)
+                if coords:
+                    self.mc.send_coords(pose, speed, 0)
+                else:
+                    self.mc.send_angles(pose, speed)
+                time.sleep(2)
+                continue
+
+            if self.mc.is_in_position(pose, int(coords)) == -1:
+                print('Cobot has had an error.')
+                self.mc.set_color(255, 0, 0)
+                return True
+            # elif time.time() - start > 1:
+            #     # check if robot has stopped moving
+            #     if self.mc.is_moving() in [0, -1]:
+            #         # send the command again
+            #         if self.mc.is_moving() == -1:
+            #             print('Cobot has had an error.')
+            #         if coords:
+            #             self.mc.send_coords(pose, speed, 0)
+            #         else:
+            #             self.mc.send_angles(pose, speed)
+
+
 
     def go_to_cube(self):
         def detect_cube_and_follow():
@@ -232,7 +264,7 @@ class MyCobotApp(QMainWindow):
                 arrived = self.move_cobot_to(coords, speed, True)
                 self.stop_wait(1)
                 if arrived:
-                    coords[2] = 100
+                    coords[2] = 120
                     arrived = self.move_cobot_to(coords, speed, True)
                     self.stop_wait(1)
                     self.mc.send_coord(6, rot, 50)
@@ -245,13 +277,12 @@ class MyCobotApp(QMainWindow):
                         if arrived:
                             self.mc.set_gripper_state(1, 50)
                             self.stop_wait(2)
-                            coords[2] = 210
-                            arrived = self.move_cobot_to(coords, speed, True)
+                            arrived = self.move_cobot_to(self.pick_up_angles, speed, False)
                             self.stop_wait(1)
-                            # if arrived:
-                            #     bin_angles = self.id_to_angles[bin_id]
-                            #     arrived = self.move_cobot_to(bin_angles, speed, False)
-                            #     self.stop_wait(1)
+                            if arrived:
+                                bin_angles = self.id_to_angles[bin_id]
+                                arrived = self.move_cobot_to(bin_angles, speed, False)
+                                self.stop_wait(1)
                             if arrived:
                                 self.mc.set_gripper_state(0, 50)
                                 self.stop_wait(2)
