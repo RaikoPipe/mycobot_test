@@ -245,18 +245,18 @@ class MyCobotApp(QMainWindow):
                         if arrived:
                             self.mc.set_gripper_state(1, 50)
                             self.stop_wait(2)
-                            coords[2] = 180
+                            coords[2] = 210
                             arrived = self.move_cobot_to(coords, speed, True)
                             self.stop_wait(1)
+                            # if arrived:
+                            #     bin_angles = self.id_to_angles[bin_id]
+                            #     arrived = self.move_cobot_to(bin_angles, speed, False)
+                            #     self.stop_wait(1)
                             if arrived:
-                                bin_angles = self.id_to_angles[bin_id]
-                                arrived = self.move_cobot_to(bin_angles, speed, False)
+                                self.mc.set_gripper_state(0, 50)
+                                self.stop_wait(2)
+                                arrived = self.move_cobot_to(self.home_angles, speed, False)
                                 self.stop_wait(1)
-                                if arrived:
-                                    self.mc.set_gripper_state(0, 50)
-                                    self.stop_wait(2)
-                                    arrived = self.move_cobot_to(self.home_angles, speed, False)
-                                    self.stop_wait(1)
                     # if arrived:
                     #     self.mc.send_coord(6, rot, 50)
                     #     time.sleep(2)
