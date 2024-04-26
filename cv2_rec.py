@@ -9,7 +9,7 @@ parameters = aruco.DetectorParameters()
 aruco_detector = aruco.ArucoDetector(dictionary, parameters)
 
 def cap_frame():
-    cap = cv2.VideoCapture(0)
+    cap = cv2.VideoCapture(1)
     if not cap.isOpened():
         print("Cannot open camera")
         exit()
@@ -136,4 +136,4 @@ def aruco_detect(frame):
             print(
                 f"Marker ID: {ids[i][0]}, Center: ({int(center[0])}, {int(center[1])}), Rotation: {angle:.2f} degrees")
 
-    return xyrot
+    return xyrot, ids[0]

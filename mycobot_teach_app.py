@@ -20,6 +20,18 @@ class MyCobotApp(QMainWindow):
         self.mc = None
         self.home_angles = [2.54, 55.72, -97.73, -44.03, -1.66, 140.0]
         self.home_coords = [52.9, -62.6, 217.8, 178.98, 1.95, 132.06]
+        self.bin_a_coords = [128.8, 172.6, 150, 178.98, 1.95, 132.06]
+        self.bin_b_coords = [19.4, 172.6, 150, 178.98, 1.95, 132.06]
+        self.bin_c_coords = [242, -147.7, 150, 168, 8.5, 212]
+        self.bin_d_coords = [137, -141, 150, 178.98, 1.95, 132.06]
+        self.loading_area_coords = [223.6, 152.7, 150, 178.98, 1.95, 132.06]
+        self.id_to_coords = {
+            0: self.bin_a_coords,
+            1: self.bin_b_coords,
+            2: self.bin_c_coords,
+            3: self.bin_d_coords,
+            4: self.loading_area_coords
+        }
         self.stop_record_flag = False
         self.commands = []  # This list will hold the saved commands
         self.init_ui()
@@ -195,7 +207,9 @@ class MyCobotApp(QMainWindow):
     def go_to_cube(self):
         def detect_cube_and_follow():
             frame = cv2_rec.cap_frame()
-            y, x, rot = cv2_rec.aruco_detect(frame)[0]
+            poses, ids = cv2_rec.aruco_detect(frame)
+            y,x, rot = poses[0]
+            bin_id = ids[0]
             print('Cube detected at:', x, y, rot)
             x /= 2.461  # ratio offset
             y /= 2.355  # ratio offset
@@ -227,6 +241,20 @@ class MyCobotApp(QMainWindow):
                         coords[2] = 80
                         coords[5] = rot
                         arrived = self.move_cobot_to(coords, 20, True)
+                        if arrived:
+                            self.mc.set_gripper_state(1, 50)
+                            self.stop_wait(2)
+                            coords[2] = 100
+                            arrived = self.move_cobot_to(coords, 50, True)
+                            self.stop_wait(1)
+                            if arrived:
+                                arrived = self.move_cobot_to(self.id_to_coords[bin_id], speed, True)
+                                self.stop_wait(1)
+                                if arrived:
+                                    self.mc.set_gripper_state(0, 50)
+                                    self.stop_wait(2)
+                                    arrived = self.move_cobot_to(self.home_coords, speed, True)
+                                    self.stop_wait(1)
                     # if arrived:
                     #     self.mc.send_coord(6, rot, 50)
                     #     time.sleep(2)
