@@ -115,7 +115,7 @@ class MyCobotApp(QMainWindow):
         self.y_offset_spin_box = QSpinBox()
         self.y_offset_spin_box.setMinimum(-300)
         self.y_offset_spin_box.setMaximum(300)
-        self.y_offset_spin_box.setValue(-10)
+        self.y_offset_spin_box.setValue(-6)
         layout.addWidget(self.y_offset_spin_box)
 
         # Create a QLabel for the QSpinBox
