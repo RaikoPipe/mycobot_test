@@ -133,14 +133,7 @@ def aruco_detect(frame):
             angle = np.arctan2(corner[0][1] - corner[2][1], corner[0][0] - corner[2][0]) * 180 / np.pi
             xyrot.append([int(center[0]), int(center[1]), angle])
 
-
-
             print(
                 f"Marker ID: {ids[i][0]}, Center: ({int(center[0])}, {int(center[1])}), Rotation: {angle:.2f} degrees")
-
-            angle = angle % 90
-            angle -= 67.5
-
-            print(f'Robot should rotate {angle} degrees to face the marker.')
 
     return xyrot
