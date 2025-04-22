@@ -1,4 +1,6 @@
 import sys
+
+import numpy as np
 from PyQt5.QtWidgets import QApplication, QMainWindow, QPushButton, QVBoxLayout, QWidget, QLabel, QListWidget, \
     QMessageBox, QSpinBox
 from PyQt5 import QtCore
@@ -18,12 +20,12 @@ class MyCobotApp(QMainWindow):
 
         self.current_thread = None
         self.mc = None
-        self.home_angles = [2.54, 55.72, -97.73, -44.03, -1.66, 140.0]
+        self.home_angles = [2.81, 32.87, -98.78, -23.29, -1.58, 139.39]
         self.home_coords = [52.9, -62.6, 217.8, 178.98, 1.95, 132.06]
         self.bin_a_angles = [68.37, -21.53, -78.75, 11.07, -0.35, -128]
-        self.bin_b_angles = [103.27,-5.71,-98.78,19.24,1.49,150.38]
-        self.bin_c_angles = [-17,-57,-36,17,-6,163]
-        self.bin_d_angles = [-31,-20,-94,32,1,142]
+        self.bin_b_angles = [103.27, -5.71, -98.78, 19.24, 1.49, 150.38]
+        self.bin_c_angles = [-17, -57, -36, 17, -6, 163]
+        self.bin_d_angles = [-31, -20, -94, 32, 1, 142]
         self.loading_area_angles = [49, -73, -1, -2, -2, -116]
         self.id_to_angles = {
             0: self.bin_a_angles,
@@ -37,9 +39,9 @@ class MyCobotApp(QMainWindow):
         self.commands = []  # This list will hold the saved commands
         self.init_ui()
 
-        self.timer = QtCore.QTimer(self)  # Initialize the timer
-        self.timer.setInterval(2000)  # Set the interval to 1000 milliseconds (1 second)
-        self.timer.timeout.connect(self.update_angles)  # Connect the timeout signal to the update_angles method
+        # self.timer = QtCore.QTimer(self)  # Initialize the timer
+        # self.timer.setInterval(2000)  # Set the interval to 1000 milliseconds (1 second)
+        # self.timer.timeout.connect(self.update_angles)  # Connect the timeout signal to the update_angles method
 
     def init_ui(self):
         self.setWindowTitle('MyCobot Controller')
@@ -155,16 +157,29 @@ class MyCobotApp(QMainWindow):
 
     def connect_robot(self):
         # Connect to the MyCobot
-        # self.mc = MyCobotSocket('141.44.152.231', 9000)
-        self.mc = MyCobot('/dev/ttyTHS1', 1000000)
+        self.mc = MyCobotSocket('141.44.152.231', 9000)
+        # self.mc = MyCobot('/dev/ttyTHS1', 1000000)
         print('Connected to robot.')
-        self.timer.start()  # Start the timer
+        # self.timer.start()  # Start the timer
 
     def disconnect_robot(self):
         if self.mc:
             self.mc.close()
             self.mc = None
             print('Disconnected from robot.')
+
+    def do_no_gesture(self):
+        left_no = self.home_angles.copy()
+        left_no[0] = 16
+        right_no = self.home_angles.copy()
+        right_no[0] = -16
+        arrived = self.move_cobot_to(left_no, 100, False)
+        if arrived:
+            arrived = self.move_cobot_to(right_no, 100, False)
+            if arrived:
+                arrived = self.move_cobot_to(self.home_angles, 100, False)
+                if arrived:
+                    self.mc.set_color(0, 255, 0)
 
     def move_home(self):
         if self.mc:
@@ -176,8 +191,9 @@ class MyCobotApp(QMainWindow):
                 self.mc.set_color(0, 255, 0)
                 print('Moved to home position.')
 
-    def go_home(self):
+            return arrived
 
+    def go_home(self):
 
         # start thread
         # end current thread
@@ -195,33 +211,49 @@ class MyCobotApp(QMainWindow):
             coords: (bool) Whether to use coordinates or angles.
             Returns: (bool) True if the robot reached the pose, False otherwise.
                 """
+
+        def is_in_position(desired_pose, coords):
+            if coords:
+                current_pose = self.mc.get_coords()
+            else:
+                current_pose = self.mc.get_angles()
+
+            if current_pose is None:
+                time.sleep(0.1)
+                return is_in_position(desired_pose, coords)
+            # if distance is less than 5mm, return True
+            # this is a workaround. For some reason the developers didn't consider
+            # that the rotation overflows from 180 to -180, so the distance calculation is wrong.
+            distance = np.linalg.norm(np.array(desired_pose[:3]) - np.array(current_pose[:3]))
+            if distance < 10:
+                return True
+            return False
+
         print('Moving to:', pose)
-        arrived = False
+
         self.mc.set_color(255, 255, 0)
         if coords:
-            arrived = self.mc.sync_send_coords(pose, speed, 0)
+            self.mc.send_coords(pose, speed, 0)
         else:
-            arrived = self.mc.sync_send_angles(pose, speed)
-        if arrived:
-            self.mc.set_color(0, 255, 0)
-            return True
-        else:
-            return False
+            self.mc.send_angles(pose, speed)
+
         start = time.time()
         while True:
-            if self.mc.is_in_position(pose, int(coords)):
-                self.mc.set_color(0, 255, 0)
+            mc_is_in_position = self.mc.is_in_position(pose, int(coords))
+            arrived = is_in_position(pose, coords)
+            if arrived == 1:
                 return True
 
             elif time.time() - start > 15:
                 print('Timeout. Aborting.')
                 self.mc.set_color(255, 0, 0)
                 self.move_home()
+                self.do_no_gesture()
                 return False
 
             elif time.time() - start > 10:
                 print('Cobot has stopped moving. Resending command.')
-                #self.mc.set_color(0, 255, 0)
+                # self.mc.set_color(0, 255, 0)
                 if coords:
                     self.mc.send_coords(pose, speed, 0)
                 else:
@@ -229,7 +261,8 @@ class MyCobotApp(QMainWindow):
                 time.sleep(2)
                 continue
 
-            if self.mc.is_in_position(pose, int(coords)) == -1:
+            if mc_is_in_position == -1:
+                # error
                 print('Cobot has had an error.')
                 self.mc.set_color(255, 0, 0)
                 return True
@@ -244,13 +277,11 @@ class MyCobotApp(QMainWindow):
             #         else:
             #             self.mc.send_angles(pose, speed)
 
-
-
     def go_to_cube(self):
         def detect_cube_and_follow():
             frame = cv2_rec.cap_frame()
             poses, ids = cv2_rec.aruco_detect(frame)
-            y,x, rot = poses[0]
+            y, x, rot = poses[0]
             bin_id = ids[0]
             print('Cube detected at:', x, y, rot)
             x /= 2.461  # ratio offset
@@ -272,37 +303,35 @@ class MyCobotApp(QMainWindow):
                 coords[1] = self.home_coords[1] + y + y_offset
 
                 arrived = self.move_cobot_to(coords, speed, True)
-                #self.stop_wait(3)
                 if arrived:
                     coords[2] = 120
                     arrived = self.move_cobot_to(coords, speed, True)
-                    self.stop_wait(1)
-                    grasp_pose = coords.copy()
-                    grasp_pose[5] = rot
-                    self.mc.sync_send_coords(grasp_pose, speed)
-                    #self.stop_wait(2)
                     if arrived:
-                        coords[2] = 80
-                        coords[5] = rot
-                        arrived = self.move_cobot_to(coords, 20, True)
-                        #self.stop_wait(2)
+                        grasp_pose = coords.copy()
+                        grasp_pose[5] = rot
+                        arrived = self.move_cobot_to(grasp_pose, speed, True)
+                        # arrived = self.mc.sync_send_coords(grasp_pose, speed, 0)
                         if arrived:
-                            self.mc.set_gripper_state(1, speed)
+                            coords[2] = 80
+                            coords[5] = rot
+                            arrived = self.move_cobot_to(coords, speed, True)
                             self.stop_wait(2)
-                            arrived = self.move_cobot_to(self.pick_up_angles, speed, False)
-                            #self.stop_wait(2)
                             if arrived:
-                                bin_angles = self.id_to_angles[bin_id]
-                                arrived = self.move_cobot_to(bin_angles, speed, False)
-                                #self.stop_wait(3)
-                            if arrived:
-                                self.mc.set_gripper_state(0, speed)
-                                self.stop_wait(2)
-                                arrived = self.move_cobot_to(self.home_angles, speed, False)
-                                #self.stop_wait(3)
-                    # if arrived:
-                    #     self.mc.send_coord(6, rot, 50)
-                    #     time.sleep(2)
+                                self.mc.set_gripper_state(1, speed)
+                                self.stop_wait(1)
+                                arrived = self.move_cobot_to(self.pick_up_angles, speed, False)
+                                if arrived:
+                                    bin_angles = self.id_to_angles[bin_id]
+                                    arrived = self.move_cobot_to(bin_angles, speed, False)
+                                if arrived:
+                                    self.mc.set_gripper_state(0, speed)
+                                    self.stop_wait(1)
+                                    arrived = self.move_cobot_to(self.home_angles, speed, False)
+                                    if arrived:
+                                        self.mc.set_color(0, 255, 0)
+                        # if arrived:
+                        #     self.mc.send_coord(6, rot, 50)
+                        #     time.sleep(2)
 
         # end current thread
         if self.current_thread:
